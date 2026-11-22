@@ -1,0 +1,169 @@
+:root {
+    --ink: #20303b;
+    --muted: #526671;
+    --accent: #17665f;
+    --paper: #f5f8f6;
+    --line: #cbdad4;
+    --error: #9c2525;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 1rem/1.5 system-ui, sans-serif;
+}
+
+a {
+    color: var(--accent);
+}
+
+:focus-visible {
+    outline: 3px solid #cf7e06;
+    outline-offset: 3px;
+}
+
+.container {
+    width: min(100% - 2rem, 70rem);
+    margin: auto;
+}
+
+header {
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+}
+
+.header {
+    padding: 1rem 0;
+}
+
+.brand {
+    font-weight: 800;
+    text-decoration: none;
+}
+
+nav {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: .7rem;
+}
+
+nav form {
+    margin: 0;
+}
+
+main {
+    padding: 2rem 0;
+}
+
+h1, h2 {
+    line-height: 1.2;
+}
+
+.card {
+    max-width: 32rem;
+    background: #fff;
+    border: 1px solid var(--line);
+    padding: 1.5rem;
+    border-radius: .75rem;
+}
+
+label {
+    display: block;
+    font-weight: 600;
+    margin-top: 1rem;
+}
+
+input, select, button {
+    font: inherit;
+}
+
+input:not([type=hidden]), select {
+    display: block;
+    width: 100%;
+    padding: .65rem;
+    border: 1px solid var(--muted);
+    border-radius: .35rem;
+    background: white;
+}
+
+button, .button {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: .6rem 1rem;
+    background: var(--accent);
+    color: white;
+    border: 0;
+    border-radius: .35rem;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+button:disabled {
+    opacity: .6;
+    cursor: wait;
+}
+
+nav button {
+    margin: 0;
+}
+
+.error {
+    color: var(--error);
+    font-size: .9rem;
+}
+
+.notice {
+    padding: 1rem;
+    border-left: 4px solid var(--accent);
+    background: #e1f1eb;
+}
+
+.tabs a[aria-current], li a[aria-current] {
+    font-weight: bold;
+    text-decoration-thickness: 3px;
+}
+
+.search {
+    display: flex;
+    align-items: end;
+    gap: .5rem;
+}
+
+.search button {
+    margin: 0;
+}
+
+.catalog {
+    display: grid;
+    gap: 1rem;
+}
+
+.catalog section {
+    background: white;
+    padding: 1rem;
+    border: 1px solid var(--line);
+    border-radius: .5rem;
+}
+
+@media (min-width: 700px) {
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .header nav {
+        margin: 0;
+    }
+
+    .catalog {
+        grid-template-columns: 1fr 2fr;
+    }
+}
