@@ -29,6 +29,20 @@ final class Router
             }
             $path = substr($path, strlen($base)) ?: '/';
         }
-        return $this->routes[strtoupper($method)][$path] ?? null;
+        foreach ($this->routes[strtoupper($method)] ?? [] as $pattern => $route) {
+            $regex = preg_replace('/\\\\\{[a-zA-Z_][a-zA-Z0-9_]*\\\\\}/', '(\\d+)', preg_quote($pattern, '~'));
+            if (preg_match('~^' . $regex . '$~D', $path, $matches)) {
+                array_shift($matches);
+                $route['params'] = array_map('intval', $matches);
+                return $route;
+            }
+        }
+        return null;
+    }
+
+    /** Return allowed methods for a URI. */
+    public function allowedMethods(string $uri): array
+    {
+        return array_values(array_filter(array_keys($this->routes), fn ($method) => $this->match($method, $uri)));
     }
 }

@@ -25,7 +25,7 @@ final class Middleware
     private function guest(): void
     {
         if (Auth::user()) {
-            redirect(Auth::hasRole('admin') ? '/yonetim' : '/bugun');
+            redirect('/');
         }
     }
 
@@ -33,12 +33,6 @@ final class Middleware
     {
         if (Auth::user()) {
             return;
-        }
-        if (str_starts_with(parse_url($requestUri, PHP_URL_PATH), rtrim($basePath, '/') . '/api/')) {
-            http_response_code(401);
-            header('Content-Type: application/json; charset=utf-8');
-            echo json_encode(['status' => 'error', 'data' => null, 'error' => 'Giriş gerekli'], JSON_UNESCAPED_UNICODE);
-            exit;
         }
         redirect('/giris');
     }
@@ -53,9 +47,11 @@ final class Middleware
 
     private function csrf(): void
     {
-        if (!Csrf::verify($_POST['_csrf'] ?? null)) {
+        $token = $_POST['_csrf'] ?? null;
+        if (!Csrf::verify($token)) {
             View::render('errors/403', [], 403);
             exit;
         }
     }
+
 }

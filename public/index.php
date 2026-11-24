@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+date_default_timezone_set('Europe/Istanbul');
+
 use App\Core\Middleware;
 use App\Core\Router;
 use App\Core\Session;
@@ -32,26 +34,21 @@ try {
     require dirname(__DIR__) . '/src/routes.php';
     $route = $router->match($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);
     if (!$route) {
-        View::render('errors/404', [], 404);
+        $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/';
+        $allowed = $router->allowedMethods($_SERVER['REQUEST_URI']);
+        if ($allowed) {
+            header('Allow: ' . implode(', ', $allowed));
+        }
+        View::render('errors/404', [], $allowed ? 405 : 404);
         exit;
     }
     (new Middleware())->handle($route['middleware'], $_SERVER['REQUEST_URI'], $config['base_path']);
     [$class, $method] = $route['handler'];
-    (new $class())->$method();
+    (new $class())->$method(...$route['params']);
 } catch (Throwable $error) {
     $message = get_class($error) . ': ' . $error->getMessage()
         . ' @ ' . $error->getFile() . ':' . $error->getLine();
     error_log($message . PHP_EOL, 3, dirname(__DIR__) . '/storage/logs/app.log');
     http_response_code(500);
-    $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/';
-    $base = rtrim($config['base_path'] ?? '', '/');
-    if (str_starts_with($path, $base . '/api/')) {
-        header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(
-            ['status' => 'error', 'data' => null, 'error' => 'Bir hata oluştu. Lütfen daha sonra tekrar deneyin.'],
-            JSON_UNESCAPED_UNICODE
-        );
-    } else {
-        echo 'Bir hata oluştu. Lütfen daha sonra tekrar deneyin.';
-    }
+    echo 'Bir hata oluştu. Lütfen daha sonra tekrar deneyin.';
 }

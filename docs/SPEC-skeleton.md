@@ -25,7 +25,7 @@ database/          schema.sql, seed.sql (TYT/AYT subjects + topics, no users), c
 tests/             run.php + *Test.php
 ```
 
-## Routing (slide 13)
+## Routing
 
 Front controller `public/index.php` -> `Router` maps `METHOD + path` to `Controller@method`.
 Route table in one place (`src/routes.php`). Middleware per route: `guest`, `auth`, `role:admin`, `csrf` (all POST).
@@ -54,7 +54,7 @@ Unknown path -> 404 view. Role mismatch -> 403 view (FR-04, NFR-03).
 
 InnoDB, utf8mb4_turkish_ci, FKs with RESTRICT (FR-43: catalog rows are deactivated, never deleted).
 
-## Login validation (slide 15)
+## Login validation
 
 - Register: full_name 2-100 chars, valid email, password min 8 chars, student_type required. Server-side validation is final (NFR-05); errors shown next to fields, other inputs kept.
 - Passwords: `password_hash(PASSWORD_DEFAULT)` / `password_verify` (NFR-04).

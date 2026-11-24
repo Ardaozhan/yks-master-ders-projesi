@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+date_default_timezone_set('Europe/Istanbul');
+
 if (PHP_SAPI !== 'cli') {
     http_response_code(403);
     exit('CLI only');
