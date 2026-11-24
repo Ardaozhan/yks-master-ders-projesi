@@ -36,10 +36,16 @@ try {
     if (!$route) {
         $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/';
         $allowed = $router->allowedMethods($_SERVER['REQUEST_URI']);
-        if ($allowed) {
-            header('Allow: ' . implode(', ', $allowed));
+        if (str_starts_with($path, rtrim($config['base_path'], '/') . '/api/')) {
+            http_response_code($allowed ? 405 : 404);
+            header('Content-Type: application/json; charset=utf-8');
+            if ($allowed) {
+                header('Allow: ' . implode(', ', $allowed));
+            }
+            echo json_encode(['status' => 'error', 'data' => null, 'error' => 'İstek bulunamadı.', 'errors' => null]);
+            exit;
         }
-        View::render('errors/404', [], $allowed ? 405 : 404);
+        View::render('errors/404', [], 404);
         exit;
     }
     (new Middleware())->handle($route['middleware'], $_SERVER['REQUEST_URI'], $config['base_path']);
@@ -50,5 +56,16 @@ try {
         . ' @ ' . $error->getFile() . ':' . $error->getLine();
     error_log($message . PHP_EOL, 3, dirname(__DIR__) . '/storage/logs/app.log');
     http_response_code(500);
-    echo 'Bir hata oluştu. Lütfen daha sonra tekrar deneyin.';
+    $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/';
+    $base = rtrim($config['base_path'] ?? '', '/');
+    if (str_starts_with($path, $base . '/api/')) {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(
+            ['status' => 'error', 'data' => null, 'error' => 'Bir hata oluştu. Lütfen daha sonra tekrar deneyin.',
+                'errors' => null],
+            JSON_UNESCAPED_UNICODE
+        );
+    } else {
+        echo 'Bir hata oluştu. Lütfen daha sonra tekrar deneyin.';
+    }
 }
