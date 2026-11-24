@@ -20,7 +20,9 @@ final class PlanController
         }
         $day = new DateTimeImmutable($date);
         $plans = (new PlanRepository())->forDate($this->userId(), $date);
-        View::render('plan/today', compact('date', 'day', 'plans'));
+        $errors = Session::pull('status_errors', []);
+        $old = Session::pull('status_old', []);
+        View::render('plan/today', compact('date', 'day', 'plans', 'errors', 'old'));
     }
 
     /** Display the new plan form. */
@@ -56,6 +58,25 @@ final class PlanController
             $this->notFound();
         }
         Session::flash('message', 'Plan silindi.');
+        redirect('/bugun?tarih=' . rawurlencode($plan['plan_date']));
+    }
+
+    /** Change an owned plan's status and study record. */
+    public function status(): void
+    {
+        $plan = $this->owned($this->id($_POST));
+        $note = array_key_exists('note', $_POST) ? input('note') : (string) ($plan['note'] ?? '');
+        $data = ['status' => input('status'), 'actual_minutes' => input('actual_minutes'), 'note' => $note];
+        $errors = (new PlanValidator())->status($data);
+        if ($errors) {
+            Session::flash('status_errors', $errors);
+            Session::flash('status_old', $data + ['id' => $plan['id']]);
+            redirect('/bugun?tarih=' . rawurlencode($plan['plan_date']));
+        }
+        if (!(new PlanRepository())->changeStatus((int) $plan['id'], $this->userId(), $data)) {
+            $this->notFound();
+        }
+        Session::flash('message', 'Çalışma durumu güncellendi.');
         redirect('/bugun?tarih=' . rawurlencode($plan['plan_date']));
     }
 

@@ -9,6 +9,14 @@ use Throwable;
 
 final class PlanRepository
 {
+    /** Find plans owned by a student within a date range. */
+    public function forRange(int $userId, string $start, string $end): array
+    {
+        $stmt = Database::connection()->prepare($this->select()
+            . ' WHERE p.user_id = ? AND p.plan_date BETWEEN ? AND ? ORDER BY p.plan_date, p.id');
+        $stmt->execute([$userId, $start, $end]);
+        return $stmt->fetchAll();
+    }
     /** Find plans owned by a student for a date. */
     public function forDate(int $userId, string $date): array
     {
@@ -69,6 +77,37 @@ final class PlanRepository
                 . 'updated_at=CURRENT_TIMESTAMP WHERE id=? AND user_id=?';
             $stmt = $db->prepare($sql);
             $stmt->execute([$data['topic_id'], $data['date'], $data['target_minutes'], $data['note'], $id, $userId]);
+            if ($plan['status'] !== 'planned') {
+                $this->record($id, $userId, $plan['actual_minutes'], $data['note']);
+            }
+            $this->commit($nested);
+            return 1;
+        } catch (Throwable $error) {
+            $this->rollback($nested);
+            throw $error;
+        }
+    }
+
+    /** Update an owned plan's status and record atomically. */
+    public function changeStatus(int $id, int $userId, array $data): int
+    {
+        $db = Database::connection();
+        $nested = $this->begin();
+        try {
+            if (!$this->lock($id, $userId)) {
+                $this->rollback($nested);
+                return 0;
+            }
+            $sql = 'UPDATE study_plans SET status=?, note=?, updated_at=CURRENT_TIMESTAMP WHERE id=? AND user_id=?';
+            $stmt = $db->prepare($sql);
+            $stmt->execute([$data['status'], $data['note'], $id, $userId]);
+            if ($data['status'] === 'planned') {
+                $sql = 'DELETE r FROM study_records r JOIN study_plans p ON p.id=r.plan_id WHERE p.id=? AND p.user_id=?';
+                $db->prepare($sql)->execute([$id, $userId]);
+            } else {
+                $actual = $data['actual_minutes'] === '' ? null : (int) $data['actual_minutes'];
+                $this->record($id, $userId, $actual, $data['note']);
+            }
             $this->commit($nested);
             return 1;
         } catch (Throwable $error) {
@@ -113,6 +152,16 @@ final class PlanRepository
         $stmt = Database::connection()->prepare($this->select() . ' WHERE p.id=? AND p.user_id=? FOR UPDATE');
         $stmt->execute([$id, $userId]);
         return $stmt->fetch() ?: null;
+    }
+
+    private function record(int $id, int $userId, ?int $actual, string $note): void
+    {
+        $sql = 'INSERT INTO study_records (plan_id, actual_minutes, studied_on, note) '
+            . 'SELECT p.id, ?, p.plan_date, ? FROM study_plans p WHERE p.id=? AND p.user_id=? '
+            . 'ON DUPLICATE KEY UPDATE actual_minutes=VALUES(actual_minutes), studied_on=VALUES(studied_on), '
+            . 'note=VALUES(note), updated_at=CURRENT_TIMESTAMP';
+        $stmt = Database::connection()->prepare($sql);
+        $stmt->execute([$actual, $note === '' ? null : $note, $id, $userId]);
     }
 
     private function begin(): bool

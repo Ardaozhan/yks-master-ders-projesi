@@ -23,6 +23,21 @@ final class PlanValidator
         return $errors;
     }
 
+    /** Validate a status change and its record fields. */
+    public function status(array $data): array
+    {
+        $errors = $this->note($data);
+        $status = $data['status'] ?? '';
+        $actual = $data['actual_minutes'] ?? '';
+        if (!in_array($status, ['planned', 'in_progress', 'completed'], true)) {
+            $errors['status'] = 'Geçerli bir durum seçin.';
+        }
+        if ($status !== 'planned' && ($actual !== '' || $status === 'completed') && !$this->inRange($actual, 1, 600)) {
+            $errors['actual_minutes'] = 'Gerçekleşen süre 1 ile 600 dakika arasında olmalıdır.';
+        }
+        return $errors;
+    }
+
     private function note(array $data): array
     {
         $note = (string) ($data['note'] ?? '');

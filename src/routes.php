@@ -26,3 +26,5 @@ $router->add('GET', '/plan/duzenle', [PlanController::class, 'edit'], ['auth', '
 $router->add('POST', '/plan', [PlanController::class, 'store'], ['auth', 'role:student', 'csrf']);
 $router->add('POST', '/plan/guncelle', [PlanController::class, 'update'], ['auth', 'role:student', 'csrf']);
 $router->add('POST', '/plan/sil', [PlanController::class, 'delete'], ['auth', 'role:student', 'csrf']);
+
+$router->add('POST', '/plan/durum', [PlanController::class, 'status'], ['auth', 'role:student', 'csrf']);
