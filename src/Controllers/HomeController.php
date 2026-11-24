@@ -12,7 +12,7 @@ final class HomeController
     public function index(): void
     {
         if (Auth::user()) {
-            redirect(Auth::hasRole('admin') ? '/yonetim' : '/katalog');
+            redirect(Auth::hasRole('admin') ? '/yonetim' : '/bugun');
         }
         View::render('home');
     }

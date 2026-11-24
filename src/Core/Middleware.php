@@ -28,7 +28,7 @@ final class Middleware
     private function guest(): void
     {
         if (Auth::user()) {
-            redirect(Auth::hasRole('admin') ? '/yonetim' : '/katalog');
+            redirect(Auth::hasRole('admin') ? '/yonetim' : '/bugun');
         }
     }
 

@@ -63,7 +63,7 @@ final class AuthController
             $this->fail('login', ['general' => 'E-posta veya parola hatalı'], $data);
         }
         Auth::login($user);
-        redirect($user['role'] === 'admin' ? '/yonetim' : '/katalog');
+        redirect($user['role'] === 'admin' ? '/yonetim' : '/bugun');
     }
 
     /** End the current user's session. */

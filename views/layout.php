@@ -23,7 +23,7 @@ $path = $base !== '' && str_starts_with($path, $base . '/') ? substr($path, strl
                     <?php if (Auth::user()): ?>
                         <?php $links = Auth::hasRole('admin')
                             ? ['/yonetim' => 'Yönetim', '/katalog' => 'Katalog']
-                            : ['/katalog' => 'Katalog']; ?>
+                            : ['/bugun' => 'Bugün', '/katalog' => 'Katalog']; ?>
                         <?php foreach ($links as $href => $label): ?>
                             <a href="<?= e(url($href)) ?>" <?= $path === $href
                                 || str_starts_with($path, $href . '/') ? 'aria-current="page"' : '' ?>>
